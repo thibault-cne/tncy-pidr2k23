@@ -12,6 +12,10 @@ RUN apt update && apt install -y curl \
     ninja-build \
     pkg-config
 
+# Create a non-root user
+RUN useradd -ms /bin/bash user
+WORKDIR /home/user
+
 #Installing Android SDK
 RUN mkdir -p Android/sdk
 ENV ANDROID_SDK_ROOT /home/user/Android/sdk
@@ -26,14 +30,11 @@ ENV PATH "$PATH:/home/user/Android/sdk/platform-tools"
 #Installing Flutter SDK
 RUN git clone https://github.com/flutter/flutter.git
 ENV PATH "$PATH:/home/user/flutter/bin"
-RUN flutter channel master
 RUN flutter upgrade
 RUN flutter doctor
 
-# Create a non-root user
-RUN useradd -ms /bin/bash user
-USER user
-WORKDIR /home/user
-
 # Clone project inside the docker container
 RUN git clone https://github.com/thibault-cne/tncy-pidr2k23
+
+# Switch to the non-root user
+USER user
