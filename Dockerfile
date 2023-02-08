@@ -1,5 +1,5 @@
 FROM ubuntu:latest as builder
-RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget
+RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget clang cmake ninja-build pkg-config
 RUN useradd -ms /bin/bash user
 USER user
 WORKDIR /home/user
@@ -14,9 +14,6 @@ RUN mv tools Android/sdk/tools
 RUN cd Android/sdk/tools/bin && yes | ./sdkmanager --licenses
 RUN cd Android/sdk/tools/bin && ./sdkmanager "build-tools;29.0.2" "patcher;v4" "platform-tools" "platforms;android-29" "sources;android-29"
 ENV PATH "$PATH:/home/user/Android/sdk/platform-tools"
-
-# Install flutter dependencies
-RUN apt install -y clang cmake ninja-build pkg-config
 
 #Installing Flutter SDK
 RUN git clone https://github.com/flutter/flutter.git
