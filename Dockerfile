@@ -1,6 +1,11 @@
 FROM ubuntu:latest as builder
 RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget clang cmake ninja-build pkg-config gpg
 
+# Create a non-root user
+RUN useradd -ms /bin/bash user
+USER user
+WORKDIR /home/user
+
 #Installing Android SDK
 RUN mkdir -p Android/sdk
 ENV ANDROID_SDK_ROOT /home/user/Android/sdk
