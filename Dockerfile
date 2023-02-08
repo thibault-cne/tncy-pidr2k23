@@ -1,5 +1,5 @@
 FROM ubuntu:latest as builder
-RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget clang cmake ninja-build pkg-config
+RUN apt update && apt install -y curl git unzip xz-utils zip libglu1-mesa openjdk-8-jdk wget clang cmake ninja-build pkg-config gpg
 
 # Install dart
 RUN apt-get update
