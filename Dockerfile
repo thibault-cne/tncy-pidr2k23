@@ -16,7 +16,7 @@ RUN cd Android/sdk/tools/bin && ./sdkmanager "build-tools;29.0.2" "patcher;v4" "
 ENV PATH "$PATH:/home/user/Android/sdk/platform-tools"
 
 # Install flutter dependencies
-RUN sudo apt-get install -y clang cmake ninja-build pkg-config
+RUN apt install -y clang cmake ninja-build pkg-config
 
 #Installing Flutter SDK
 RUN git clone https://github.com/flutter/flutter.git
