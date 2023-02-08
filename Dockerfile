@@ -21,3 +21,6 @@ ENV PATH "$PATH:/home/user/flutter/bin"
 RUN flutter channel dev
 RUN flutter upgrade
 RUN flutter doctor
+
+# Clone project inside the docker container
+RUN git clone https://github.com/thibault-cne/tncy-pidr2k23
