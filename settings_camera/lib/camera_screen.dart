@@ -26,7 +26,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   // Initial values
   bool _isCameraInitialized = false;
-  bool _isCameraPermissionGranted = false;
+  bool _isCameraPermissionGranted = true;
   bool _isRearCameraSelected = true;
   bool _isVideoCameraSelected = false;
   bool _isRecordingInProgress = false;
