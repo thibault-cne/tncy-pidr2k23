@@ -1,0 +1,7 @@
+Qr code 
+https://pub.dev/packages/qr_code_scanner
+Camera 
+https://medium.com/@fernnandoptr/how-to-use-camera-in-flutter-flutter-camera-package-44defe81d2da
+https://docs.flutter.dev/cookbook/plugins/picture-using-camera
+Camera with settings 
+https://blog.logrocket.com/flutter-camera-plugin-deep-dive-with-examples/
