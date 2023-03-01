@@ -295,8 +295,7 @@ class _CameraScreenState extends State<CameraScreen>
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: _isCameraPermissionGranted
-            ? _isCameraInitialized
+        body: _isCameraInitialized
                 ? Column(
                     children: [
                       AspectRatio(
@@ -822,35 +821,7 @@ class _CameraScreenState extends State<CameraScreen>
                       style: TextStyle(color: Colors.white),
                     ),
                   )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(),
-                  Text(
-                    'Permission denied',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      getPermissionStatus();
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        'Give permission',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 24,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+
       ),
     );
   }
