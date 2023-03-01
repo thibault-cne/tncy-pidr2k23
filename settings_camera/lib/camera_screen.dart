@@ -26,7 +26,7 @@ class _CameraScreenState extends State<CameraScreen>
 
   // Initial values
   bool _isCameraInitialized = false;
-  bool _isCameraPermissionGranted = false;
+  bool _isCameraPermissionGranted = true;
   bool _isRearCameraSelected = true;
   bool _isVideoCameraSelected = false;
   bool _isRecordingInProgress = false;
@@ -263,7 +263,7 @@ class _CameraScreenState extends State<CameraScreen>
   void initState() {
     // Hide the status bar in Android
     SystemChrome.setEnabledSystemUIOverlays([]);
-    getPermissionStatus();
+    //getPermissionStatus();
     super.initState();
   }
 
