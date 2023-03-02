@@ -12,6 +12,9 @@ import 'package:video_player/video_player.dart';
 import 'main.dart';
 
 class CameraScreen extends StatefulWidget {
+  const CameraPage({Key? key, required this.cameras}) : super(key: key);
+
+  final List<CameraDescription>? cameras;
   @override
   _CameraScreenState createState() => _CameraScreenState();
 }
