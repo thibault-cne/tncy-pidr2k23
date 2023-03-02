@@ -3,33 +3,28 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'preview_screen.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
+import 'preview_page.dart';
 
-import 'main.dart';
-
-class CameraScreen extends StatefulWidget {
+class CameraPage extends StatefulWidget {
   const CameraPage({Key? key, required this.cameras}) : super(key: key);
 
   final List<CameraDescription>? cameras;
+
   @override
-  _CameraScreenState createState() => _CameraScreenState();
+  State<CameraPage> createState() => _CameraPageState();
 }
 
-class _CameraScreenState extends State<CameraScreen>
-    with WidgetsBindingObserver {
-  CameraController? controller;
+class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
+  late CameraController _cameraController;
   VideoPlayerController? videoController;
 
   File? _imageFile;
   File? _videoFile;
-
-  // Initial values
   bool _isCameraInitialized = true;
-  bool _isCameraPermissionGranted = true;
   bool _isRearCameraSelected = true;
   bool _isVideoCameraSelected = false;
   bool _isRecordingInProgress = false;
@@ -49,24 +44,19 @@ class _CameraScreenState extends State<CameraScreen>
 
   ResolutionPreset currentResolutionPreset = ResolutionPreset.high;
 
-  getPermissionStatus() async {
-    await Permission.camera.request();
-    var status = await Permission.camera.status;
-
-    if (status.isGranted) {
-      log('Camera Permission: GRANTED');
-      setState(() {
-        _isCameraPermissionGranted = true;
-      });
-      // Set and initialize the new camera
-      onNewCameraSelected(cameras[0]);
-      refreshAlreadyCapturedImages();
-    } else {
-      log('Camera Permission: DENIED');
-    }
+  @override
+  void dispose() {
+    _cameraController.dispose();
+    super.dispose();
   }
 
-  refreshAlreadyCapturedImages() async {
+  @override
+  void initState() {
+    super.initState();
+    initCamera(widget.cameras![0]);
+  }
+
+   refreshAlreadyCapturedImages() async {
     final directory = await getApplicationDocumentsDirectory();
     List<FileSystemEntity> fileList = await directory.list().toList();
     allFileList.clear();
@@ -88,7 +78,8 @@ class _CameraScreenState extends State<CameraScreen>
       if (recentFileName.contains('.mp4')) {
         _videoFile = File('${directory.path}/$recentFileName');
         _imageFile = null;
-        _startVideoPlayer();
+        super.initState();
+        //_startVideoPlayer();
       } else {
         _imageFile = File('${directory.path}/$recentFileName');
         _videoFile = null;
@@ -97,9 +88,8 @@ class _CameraScreenState extends State<CameraScreen>
       setState(() {});
     }
   }
-
   Future<XFile?> takePicture() async {
-    final CameraController? cameraController = controller;
+    final CameraController? cameraController = _cameraController;
 
     if (cameraController!.value.isTakingPicture) {
       // A capture is already pending, do nothing.
@@ -114,7 +104,6 @@ class _CameraScreenState extends State<CameraScreen>
       return null;
     }
   }
-
   Future<void> _startVideoPlayer() async {
     if (_videoFile != null) {
       videoController = VideoPlayerController.file(_videoFile!);
@@ -127,34 +116,29 @@ class _CameraScreenState extends State<CameraScreen>
       await videoController!.play();
     }
   }
-
   Future<void> startVideoRecording() async {
-    final CameraController? cameraController = controller;
+    final CameraController? cameraController = _cameraController;
 
-    if (controller!.value.isRecordingVideo) {
+    if (_cameraController!.value.isRecordingVideo) {
       // A recording has already started, do nothing.
       return;
     }
 
     try {
       await cameraController!.startVideoRecording();
-      setState(() {
-        _isRecordingInProgress = true;
         print(_isRecordingInProgress);
-      });
-    } on CameraException catch (e) {
+    }on CameraException catch (e) {
       print('Error starting to record video: $e');
     }
   }
-
   Future<XFile?> stopVideoRecording() async {
-    if (!controller!.value.isRecordingVideo) {
+    if (!_cameraController!.value.isRecordingVideo) {
       // Recording is already is stopped state
       return null;
     }
 
     try {
-      XFile file = await controller!.stopVideoRecording();
+      XFile file = await _cameraController!.stopVideoRecording();
       setState(() {
         _isRecordingInProgress = false;
       });
@@ -164,28 +148,27 @@ class _CameraScreenState extends State<CameraScreen>
       return null;
     }
   }
-
   Future<void> pauseVideoRecording() async {
-    if (!controller!.value.isRecordingVideo) {
+    if (!_cameraController!.value.isRecordingVideo) {
       // Video recording is not in progress
       return;
     }
 
     try {
-      await controller!.pauseVideoRecording();
+      await _cameraController!.pauseVideoRecording();
     } on CameraException catch (e) {
       print('Error pausing video recording: $e');
     }
   }
 
   Future<void> resumeVideoRecording() async {
-    if (!controller!.value.isRecordingVideo) {
+    if (!_cameraController!.value.isRecordingVideo) {
       // No video recording was in progress
       return;
     }
 
     try {
-      await controller!.resumeVideoRecording();
+      await _cameraController!.resumeVideoRecording();
     } on CameraException catch (e) {
       print('Error resuming video recording: $e');
     }
@@ -197,7 +180,7 @@ class _CameraScreenState extends State<CameraScreen>
   }
 
   void onNewCameraSelected(CameraDescription cameraDescription) async {
-    final previousCameraController = controller;
+    final previousCameraController = _cameraController;
 
     final CameraController cameraController = CameraController(
       cameraDescription,
@@ -211,7 +194,7 @@ class _CameraScreenState extends State<CameraScreen>
 
     if (mounted) {
       setState(() {
-        controller = cameraController;
+        _cameraController = cameraController;
       });
     }
 
@@ -237,20 +220,20 @@ class _CameraScreenState extends State<CameraScreen>
             .then((value) => _minAvailableZoom = value),
       ]);
 
-      _currentFlashMode = controller!.value.flashMode;
+      _currentFlashMode = _cameraController!.value.flashMode;
     } on CameraException catch (e) {
       print('Error initializing camera: $e');
     }
 
     if (mounted) {
       setState(() {
-        _isCameraInitialized = controller!.value.isInitialized;
+        _isCameraInitialized = _cameraController!.value.isInitialized;
       });
     }
   }
 
   void onViewFinderTap(TapDownDetails details, BoxConstraints constraints) {
-    if (controller == null) {
+    if (_cameraController == null) {
       return;
     }
 
@@ -258,42 +241,26 @@ class _CameraScreenState extends State<CameraScreen>
       details.localPosition.dx / constraints.maxWidth,
       details.localPosition.dy / constraints.maxHeight,
     );
-    controller!.setExposurePoint(offset);
-    controller!.setFocusPoint(offset);
+    _cameraController!.setExposurePoint(offset);
+    _cameraController!.setFocusPoint(offset);
   }
 
-  @override
-  void initState() {
-    // Hide the status bar in Android
-    SystemChrome.setEnabledSystemUIOverlays([]);
-    //getPermissionStatus();
-    super.initState();
-  }
+  
 
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    final CameraController? cameraController = controller;
-
-    // App state changed before we got the chance to initialize.
-    if (cameraController == null || !cameraController.value.isInitialized) {
-      return;
-    }
-
-    if (state == AppLifecycleState.inactive) {
-      cameraController.dispose();
-    } else if (state == AppLifecycleState.resumed) {
-      onNewCameraSelected(cameraController.description);
+  Future initCamera(CameraDescription cameraDescription) async {
+    _cameraController =
+        CameraController(cameraDescription, ResolutionPreset.high);
+    try {
+      await _cameraController.initialize().then((_) {
+        if (!mounted) return;
+        setState(() {});
+      });
+    } on CameraException catch (e) {
+      debugPrint("camera error $e");
     }
   }
 
-  @override
-  void dispose() {
-    controller?.dispose();
-    videoController?.dispose();
-    super.dispose();
-  }
-
-  @override
+ @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
@@ -302,11 +269,11 @@ class _CameraScreenState extends State<CameraScreen>
                 ? Column(
                     children: [
                       AspectRatio(
-                        aspectRatio: 1 / controller!.value.aspectRatio,
+                        aspectRatio: 1 / _cameraController!.value.aspectRatio,
                         child: Stack(
                           children: [
                             CameraPreview(
-                              controller!,
+                              _cameraController!,
                               child: LayoutBuilder(builder:
                                   (BuildContext context,
                                       BoxConstraints constraints) {
@@ -374,7 +341,7 @@ class _CameraScreenState extends State<CameraScreen>
                                               _isCameraInitialized = false;
                                             });
                                             onNewCameraSelected(
-                                                controller!.description);
+                                                _cameraController!.description);
                                           },
                                           hint: Text("Select item"),
                                         ),
@@ -417,7 +384,7 @@ class _CameraScreenState extends State<CameraScreen>
                                             setState(() {
                                               _currentExposureOffset = value;
                                             });
-                                            await controller!
+                                            await _cameraController!
                                                 .setExposureOffset(value);
                                           },
                                         ),
@@ -437,7 +404,7 @@ class _CameraScreenState extends State<CameraScreen>
                                             setState(() {
                                               _currentZoomLevel = value;
                                             });
-                                            await controller!
+                                            await _cameraController!
                                                 .setZoomLevel(value);
                                           },
                                         ),
@@ -472,7 +439,7 @@ class _CameraScreenState extends State<CameraScreen>
                                       InkWell(
                                         onTap: _isRecordingInProgress
                                             ? () async {
-                                                if (controller!
+                                                if (_cameraController!
                                                     .value.isRecordingPaused) {
                                                   await resumeVideoRecording();
                                                 } else {
@@ -483,10 +450,10 @@ class _CameraScreenState extends State<CameraScreen>
                                                 setState(() {
                                                   _isCameraInitialized = false;
                                                 });
-                                                onNewCameraSelected(cameras[
+                                                /*onNewCameraSelected(cameras[
                                                     _isRearCameraSelected
                                                         ? 1
-                                                        : 0]);
+                                                        : 0].description);*/
                                                 setState(() {
                                                   _isRearCameraSelected =
                                                       !_isRearCameraSelected;
@@ -501,7 +468,7 @@ class _CameraScreenState extends State<CameraScreen>
                                               size: 60,
                                             ),
                                             _isRecordingInProgress
-                                                ? controller!
+                                                ? _cameraController!
                                                         .value.isRecordingPaused
                                                     ? Icon(
                                                         Icons.play_arrow,
@@ -614,7 +581,7 @@ class _CameraScreenState extends State<CameraScreen>
                                                 Navigator.of(context).push(
                                                   MaterialPageRoute(
                                                     builder: (context) =>
-                                                        PreviewScreen(
+                                                        PreviewPage(
                                                       imageFile: _imageFile!,
                                                       fileList: allFileList,
                                                     ),
@@ -746,7 +713,7 @@ class _CameraScreenState extends State<CameraScreen>
                                         setState(() {
                                           _currentFlashMode = FlashMode.off;
                                         });
-                                        await controller!.setFlashMode(
+                                        await _cameraController!.setFlashMode(
                                           FlashMode.off,
                                         );
                                       },
@@ -763,7 +730,7 @@ class _CameraScreenState extends State<CameraScreen>
                                         setState(() {
                                           _currentFlashMode = FlashMode.auto;
                                         });
-                                        await controller!.setFlashMode(
+                                        await _cameraController!.setFlashMode(
                                           FlashMode.auto,
                                         );
                                       },
@@ -780,7 +747,7 @@ class _CameraScreenState extends State<CameraScreen>
                                         setState(() {
                                           _currentFlashMode = FlashMode.always;
                                         });
-                                        await controller!.setFlashMode(
+                                        await _cameraController!.setFlashMode(
                                           FlashMode.always,
                                         );
                                       },
@@ -797,7 +764,7 @@ class _CameraScreenState extends State<CameraScreen>
                                         setState(() {
                                           _currentFlashMode = FlashMode.torch;
                                         });
-                                        await controller!.setFlashMode(
+                                        await _cameraController!.setFlashMode(
                                           FlashMode.torch,
                                         );
                                       },
