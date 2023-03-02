@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'captures_screen.dart';
 
-class PreviewScreen extends StatelessWidget {
+class PreviewPage extends StatelessWidget {
   final File imageFile;
   final List<File> fileList;
 
-  const PreviewScreen({
+  const PreviewPage({
     required this.imageFile,
     required this.fileList,
   });
